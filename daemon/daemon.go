@@ -60,6 +60,7 @@ import (
 	nwconfig "github.com/docker/libnetwork/config"
 	"github.com/docker/libtrust"
 	"github.com/pkg/errors"
+	"github.com/docker/libentitlement"
 )
 
 var (
@@ -108,6 +109,8 @@ type Daemon struct {
 	clusterProvider           cluster.Provider
 	cluster                   Cluster
 	metricsPluginListener     net.Listener
+
+	EntitlementManager	  *libentitlement.EntitlementsManager
 
 	machineMemory uint64
 

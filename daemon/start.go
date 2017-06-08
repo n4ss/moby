@@ -163,7 +163,15 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	if err := daemon.containerd.Create(container.ID, checkpoint, checkpointDir, *spec, container.InitializeStdio, createOptions...); err != nil {
+	logrus.Errorf("Setting entitlements: %v", container.HostConfig.Entitlements)
+	newSpec, err := daemon.setEntitlements(container, spec)
+	if err != nil {
+		return err
+	}
+
+	logrus.Errorf("Spec caps: %v", spec.Process.Capabilities)
+
+	if err := daemon.containerd.Create(container.ID, checkpoint, checkpointDir, *newSpec, container.InitializeStdio, createOptions...); err != nil {
 		errDesc := grpc.ErrorDesc(err)
 		contains := func(s1, s2 string) bool {
 			return strings.Contains(strings.ToLower(s1), s2)
