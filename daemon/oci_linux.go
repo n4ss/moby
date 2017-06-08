@@ -27,6 +27,8 @@ import (
 	"github.com/opencontainers/runc/libcontainer/devices"
 	"github.com/opencontainers/runc/libcontainer/user"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
+	"github.com/docker/libentitlement/security-profile"
+	"github.com/docker/libentitlement"
 )
 
 var (
@@ -479,6 +481,56 @@ var (
 		mount.RSLAVE:   "rslave",
 	}
 )
+
+// Dirty hack due to go typing system even though types are similar
+// because dependencies are identical -> will have to sort out deps
+func generateSecurityProfile(s *specs.Spec) (*security_profile.Profile, error) {
+	if s == nil {
+		return nil, fmt.Errorf("invalid specs")
+	}
+
+	// TODO: add apparmor profile etc
+	return security_profile.NewProfile(s), nil
+}
+
+func setSecurityProfile(daemon *Daemon, profile *security_profile.Profile) error {
+	return daemon.EntitlementManager.SetProfile(profile)
+}
+
+func getSecurityProfile(daemon *Daemon) (*security_profile.Profile, error) {
+	return daemon.EntitlementManager.GetProfile()
+}
+
+// We only allow to set default entilements for now
+func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.Spec, error) {
+	if s == nil {
+		return nil, fmt.Errorf("Cannot set entitlements - invalid specs")
+	}
+
+	if d.EntitlementManager == nil {
+
+		profile, _ := generateSecurityProfile(s)
+		d.EntitlementManager = libentitlement.NewEntitlementsManager(profile)
+	}
+
+	entitlementNames := c.HostConfig.Entitlements
+	for _, entitlementName := range entitlementNames {
+		// Only default entitlements supported for now
+		if err := d.EntitlementManager.AddDefault(entitlementName); err != nil {
+			return nil, err
+		}
+	}
+
+	profile, err := d.EntitlementManager.GetProfile()
+	if err != nil {
+		return nil, err
+	}
+
+	// Dirty hack to convert back to oci spec type
+	spec := specs.Spec(*profile.Oci)
+
+	return &spec, nil
+}
 
 func setMounts(daemon *Daemon, s *specs.Spec, c *container.Container, mounts []container.Mount) error {
 	userMounts := make(map[string]struct{})
