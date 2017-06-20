@@ -170,6 +170,7 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 	}
 
 	logrus.Errorf("Spec caps: %v", spec.Process.Capabilities)
+	logrus.Errorf("Spec seccomp profile: %v", spec.Linux.Seccomp)
 
 	if err := daemon.containerd.Create(container.ID, checkpoint, checkpointDir, *newSpec, container.InitializeStdio, createOptions...); err != nil {
 		errDesc := grpc.ErrorDesc(err)
