@@ -40,8 +40,6 @@ func (p *OCIProfile) AddCaps(capsToAdd ...types.Capability) {
 		p.OCI.Process.Capabilities.Inheritable = addCapToList(p.OCI.Process.Capabilities.Inheritable, capStr)
 		p.OCI.Process.Capabilities.Permitted = addCapToList(p.OCI.Process.Capabilities.Permitted, capStr)
 
-		// Should be updated automatically if the previous masks are set
-		p.OCI.Process.Capabilities.Ambient = addCapToList(p.OCI.Process.Capabilities.Ambient, capStr)
 	}
 }
 
@@ -54,9 +52,6 @@ func (p *OCIProfile) RemoveCaps(capsToRemove ...types.Capability) {
 		p.OCI.Process.Capabilities.Effective = removeCapFromList(p.OCI.Process.Capabilities.Effective, capStr)
 		p.OCI.Process.Capabilities.Inheritable = removeCapFromList(p.OCI.Process.Capabilities.Inheritable, capStr)
 		p.OCI.Process.Capabilities.Permitted = removeCapFromList(p.OCI.Process.Capabilities.Permitted, capStr)
-
-		// Should be updated automatically if the previous masks are set
-		p.OCI.Process.Capabilities.Ambient = removeCapFromList(p.OCI.Process.Capabilities.Ambient, capStr)
 	}
 }
 

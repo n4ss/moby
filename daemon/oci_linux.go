@@ -533,11 +533,8 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 
 	apparmorProfileName := "docker-entitlement-poc"
 
-	if d.EntitlementManager == nil {
-
-		profile, _ := generateSecurityProfile(s, apparmorProfileName)
-		d.EntitlementManager = libentitlement.NewEntitlementsManager(profile)
-	}
+	ociProfile, _ := generateSecurityProfile(s, apparmorProfileName)
+	d.EntitlementManager = libentitlement.NewEntitlementsManager(ociProfile)
 
 	entitlementNames := c.HostConfig.Entitlements
 	for _, entitlementName := range entitlementNames {

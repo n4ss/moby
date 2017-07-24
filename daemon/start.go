@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/container"
+	"encoding/json"
 )
 
 // ContainerStart starts a container.
@@ -165,7 +166,9 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	logrus.Errorf("Spec caps: %v", spec.Process.Capabilities)
+	if err := json.NewEncoder(logrus.StandardLogger().Out).Encode(newSpec); err != nil {
+		return err
+	}
 
 	if err := daemon.containerd.Create(container.ID, checkpoint, checkpointDir, *newSpec, container.InitializeStdio, createOptions...); err != nil {
 		errDesc := grpc.ErrorDesc(err)
