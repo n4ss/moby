@@ -2,23 +2,26 @@ package libentitlement
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/Sirupsen/logrus"
+
 	"github.com/docker/libentitlement/defaults"
 	"github.com/docker/libentitlement/domain"
 	"github.com/docker/libentitlement/entitlement"
-	secprofile "github.com/docker/libentitlement/security-profile"
-	"strings"
+	secprofile "github.com/docker/libentitlement/secprofile"
 )
 
+// EntitlementsManager generates enforceable profiles from its entitlements and domains state
 type EntitlementsManager struct {
-	profile         *secprofile.Profile
+	profile         secprofile.Profile
 	entitlementList []entitlement.Entitlement
 	domainManager   *domainmanager.DomainManager
 }
 
-// NewEntitlementsManager() instantiates an EntitlementsManager object with the given profile
+// NewEntitlementsManager instantiates an EntitlementsManager object with the given profile
 // default
-func NewEntitlementsManager(profile *secprofile.Profile) *EntitlementsManager {
+func NewEntitlementsManager(profile secprofile.Profile) *EntitlementsManager {
 	if profile == nil {
 		logrus.Errorf("Entilements Manager initialization: invalid security profile - cannot be nil")
 		return nil
@@ -31,17 +34,17 @@ func NewEntitlementsManager(profile *secprofile.Profile) *EntitlementsManager {
 	}
 }
 
-// GetProfile() returns the current state of the security profile
-func (m *EntitlementsManager) GetProfile() (*secprofile.Profile, error) {
+// GetProfile returns the current state of the security profile
+func (m *EntitlementsManager) GetProfile() (secprofile.Profile, error) {
 	if m.profile == nil {
-		return nil, fmt.Errorf("Entitlements Manager has np security profile.")
+		return nil, fmt.Errorf("Entitlements Manager doesn't have a security profile")
 	}
 
 	return m.profile, nil
 }
 
-// SetProfile() sets the entitlement manager's security profile
-func (m *EntitlementsManager) SetProfile(profile *secprofile.Profile) error {
+// SetProfile sets the entitlement manager's security profile
+func (m *EntitlementsManager) SetProfile(profile secprofile.Profile) error {
 	if profile == nil {
 		return fmt.Errorf("Invalid security profile")
 	}
@@ -69,17 +72,17 @@ func isValidEntitlement(ent entitlement.Entitlement) (bool, error) {
 	return true, nil
 }
 
-// AddDefault() adds a default entitlement identified by the "
+// AddDefault adds a default entitlement identified by entName which must be a default identifier.
 func (m *EntitlementsManager) AddDefault(entName string) error {
 	defaultEnt, ok := defaults.DefaultEntitlements[entName]
 	if !ok {
-		return fmt.Errorf("Couldn't add invalid default entitlement name")
+		return fmt.Errorf("Couldn't add invalid default entitlement name: %s", entName)
 	}
 
 	return m.Add(defaultEnt)
 }
 
-// Add() adds the given entitlements to the current entitlements list, updates the domain name system and enforce
+// Add adds the given entitlements to the current entitlements list, updates the domain name system and enforce
 // the entitlement on the security profile
 func (m *EntitlementsManager) Add(entitlements ...entitlement.Entitlement) error {
 	if m.profile == nil {
@@ -100,7 +103,7 @@ func (m *EntitlementsManager) Add(entitlements ...entitlement.Entitlement) error
 		domainString, _ := ent.Domain()
 		domainList := strings.Split(domainString, ".")
 
-		err = m.domainManager.AddFullDomainWithEntitlementId(domainList, identifier)
+		err = m.domainManager.AddFullDomainWithEntitlementID(domainList, identifier)
 		if err != nil {
 			// Should not happen since we verified isValidEntitlement
 			// FIXME: we should probably revert the changes on the security profile
@@ -149,7 +152,7 @@ func isEqual(ent1, ent2 entitlement.Entitlement) (bool, error) {
 	return id1 == id2 && dom1 == dom2 && val1 == val2, nil
 }
 
-// HasEntitlement() returns wether the given entitlement is registered in the current entitlements list
+// HasEntitlement returns whether the given entitlement is registered in the current entitlements list
 func (m *EntitlementsManager) HasEntitlement(ent entitlement.Entitlement) (bool, error) {
 	if isValid, err := isValidEntitlement(ent); isValid == false {
 		return false, fmt.Errorf("Couldn't check  invalid entitlement: %v", err)
@@ -170,7 +173,7 @@ func (m *EntitlementsManager) HasEntitlement(ent entitlement.Entitlement) (bool,
 	return false, nil
 }
 
-// Enforce() applies the constraints on the security profile and updates it to be used for the container
+// Enforce applies the constraints on the security profile and updates it to be used for the container
 func (m *EntitlementsManager) Enforce() error {
 	for _, ent := range m.entitlementList {
 		if isValid, err := isValidEntitlement(ent); isValid == false {
