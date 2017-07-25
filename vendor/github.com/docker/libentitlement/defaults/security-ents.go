@@ -37,13 +37,17 @@ func securityConfinedEntitlementEnforce(profile secprofile.Profile) (secprofile.
 	}
 
 	capsToRemove := []types.Capability{
-		CapMacAdmin, CapMacOverride, CapDacOverride, CapDacReadSearch, CapSetfcap, CapSetfcap, CapSetuid, CapSetgid,
+		CapMacAdmin, CapMacOverride, CapDacOverride, CapDacReadSearch, CapSetpcap, CapSetfcap, CapSetuid, CapSetgid,
 		CapSysPtrace, CapFsetid, CapSysModule, CapSyslog, CapSysRawio, CapSysAdmin, CapLinuxImmutable,
 	}
 	ociProfile.RemoveCaps(capsToRemove...)
 
 	syscallsToBlock := []types.Syscall{
-		SysPtrace, SysArchPrctl, SysPersonality, SysPersonality, SysSetuid, SysSetgid, SysPrctl, SysMadvise,
+		SysPtrace, SysArchPrctl, SysPersonality,
+		// SysSetuid,
+		// SysSetgid,
+		// SysPrctl,
+		SysMadvise,
 	}
 	ociProfile.BlockSyscalls(syscallsToBlock...)
 
