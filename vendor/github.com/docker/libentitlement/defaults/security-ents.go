@@ -123,18 +123,18 @@ func securityAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.Pro
 
 	capsToAdd := []types.Capability{
 		CapMacAdmin, CapMacOverride, CapDacOverride, CapDacReadSearch, CapSetpcap, CapSetfcap, CapSetuid, CapSetgid,
-		CapSysPtrace, CapFsetid, CapSysModule, CapSyslog, CapSysRawio, CapSysAdmin, CapLinuxImmutable,
+		CapSysPtrace, CapFsetid, CapSysModule, CapSyslog, CapSysRawio, CapSysAdmin, CapLinuxImmutable, CapSysBoot,
+		CapSysNice, CapSysPacct, CapSysTtyConfig, CapSysTime, CapWakeAlarm,
 	}
 	ociProfile.AddCaps(capsToAdd...)
 
 	syscallsToAllow := []types.Syscall{
-		SysPtrace, SysArchPrctl, SysPersonality, SysSetuid, SysSetgid, SysPrctl, SysMadvise,
+		SysPtrace, SysArchPrctl, SysPersonality, SysSetuid, SysSetgid, SysPrctl, SysMadvise, SysMount, SysInitModule,
+		SysFinitModule, SysSetns, SysClone, SysUnshare,
 	}
 	ociProfile.AllowSyscalls(syscallsToAllow...)
 
 	ociProfile.OCI.Linux.ReadonlyPaths = []string{}
-
-	ociProfile.OCI.Process.ApparmorProfile = "unconfined"
 
 	return ociProfile, nil
 }

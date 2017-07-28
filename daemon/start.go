@@ -170,7 +170,6 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	logrus.Errorf("Setting entitlements: %v", container.HostConfig.Entitlements)
 	newSpec, err := daemon.setEntitlements(container, spec)
 	if err != nil {
 		return err
