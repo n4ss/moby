@@ -557,10 +557,16 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 	// Dirty hack to convert back to oci spec type
 	spec := specs.Spec(*ociProfile.OCI)
 
-	if ociProfile.AppArmorSetup != nil && apparmor.IsEnabled() {
+	if ociProfile.OCI.Process.ApparmorProfile != "unconfined" &&
+		ociProfile.AppArmorSetup != nil && apparmor.IsEnabled() {
+
+		logrus.Errorf("Installing AppArmor profile: %s", ociProfile.OCI.Process.ApparmorProfile)
+
 		if err = installAppArmorProfile(apparmorProfileName, ociProfile.AppArmorSetup); err != nil {
 			return nil, err
 		}
+	} else {
+		ociProfile.OCI.Process.ApparmorProfile = ""
 	}
 
 	return &spec, nil
