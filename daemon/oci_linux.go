@@ -591,6 +591,7 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 	entitlementNames := c.HostConfig.Entitlements
 	for _, entitlementName := range entitlementNames {
 		// Only default entitlements supported for now
+		logrus.Errorf("Setting entitlement: %v", entitlementName)
 		if err := d.EntitlementManager.AddDefault(entitlementName); err != nil {
 			return nil, err
 		}
@@ -609,16 +610,17 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 	// Dirty hack to convert back to oci spec type
 	spec := specs.Spec(*ociProfile.OCI)
 
-	if ociProfile.OCI.Process.ApparmorProfile != "unconfined" &&
-		ociProfile.AppArmorSetup != nil && apparmor.IsEnabled() {
-
-		logrus.Errorf("Installing AppArmor profile: %s", ociProfile.OCI.Process.ApparmorProfile)
-
-		if err = installAppArmorProfile(apparmorProfileName, ociProfile.AppArmorSetup); err != nil {
-			return nil, err
-		}
-	} else {
+	if !apparmor.IsEnabled() {
 		ociProfile.OCI.Process.ApparmorProfile = ""
+	} else {
+		if ociProfile.OCI.Process.ApparmorProfile != "unconfined" && ociProfile.AppArmorSetup != nil {
+
+			logrus.Errorf("Installing AppArmor profile: %s", ociProfile.OCI.Process.ApparmorProfile)
+
+			if err = installAppArmorProfile(apparmorProfileName, ociProfile.AppArmorSetup); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return &spec, nil
