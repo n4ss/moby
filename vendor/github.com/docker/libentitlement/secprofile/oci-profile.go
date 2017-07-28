@@ -5,6 +5,7 @@ import (
 	"github.com/docker/libentitlement/types"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"reflect"
+	"github.com/Sirupsen/logrus"
 )
 
 // OCIProfileType is an identifier for an OCI profile
@@ -22,6 +23,10 @@ type OCIProfile struct {
 
 // NewOCIProfile instantiates an OCIProfile object with an OCI specification structure
 func NewOCIProfile(ociSpec *specs.Spec, apparmorProfileName string) *OCIProfile {
+	if apparmorProfileName == "" || apparmorProfileName == "unconfined" {
+		return &OCIProfile{OCI: ociSpec, AppArmorSetup: nil}
+	}
+
 	return &OCIProfile{OCI: ociSpec, AppArmorSetup: apparmor.NewProfileData(apparmorProfileName)}
 }
 
@@ -101,34 +106,45 @@ func (p *OCIProfile) RemoveNamespaces(nsTypes ...specs.LinuxNamespaceType) {
 	}
 }
 
-// AllowSyscallsWithArgs adds seccomp rules to allow syscalls with the given arguments if necessary
-func (p *OCIProfile) AllowSyscallsWithArgs(syscallsWithArgsToAllow map[types.Syscall][]specs.LinuxSeccompArg) {
-	defaultActError := p.OCI.Linux.Seccomp.DefaultAction == specs.ActErrno
+func allowSyscallWithArgs(seccompProfile *specs.LinuxSeccomp, syscallName types.Syscall, syscallArgs []specs.LinuxSeccompArg) *specs.LinuxSeccomp {
+	defaultActError := seccompProfile.DefaultAction == specs.ActErrno
 
-	for syscallNameToAllow, syscallArgsToAllow := range syscallsWithArgsToAllow {
-		syscallNameToAllowStr := string(syscallNameToAllow)
+	syscallNameToAllowStr := string(syscallName)
 
-		for _, syscallRule := range p.OCI.Linux.Seccomp.Syscalls {
+	logrus.Errorf("Allowing syscall: %s", syscallNameToAllowStr)
 
-			if syscallRule.Action == specs.ActAllow {
-				for _, syscallName := range syscallRule.Names {
-					if syscallName == syscallNameToAllowStr &&
-						((len(syscallArgsToAllow) == 0 && len(syscallRule.Args) == 0) ||
-							reflect.DeepEqual(syscallRule.Args, syscallArgsToAllow)) {
-						return
-					}
+	for _, syscallRule := range seccompProfile.Syscalls {
+
+		if syscallRule.Action == specs.ActAllow {
+			for _, syscallName := range syscallRule.Names {
+				if syscallName == syscallNameToAllowStr &&
+					((len(syscallArgs) == 0 && len(syscallRule.Args) == 0) ||
+						reflect.DeepEqual(syscallRule.Args, syscallArgs)) {
+					logrus.Errorf("Syscall already added: %s", syscallNameToAllowStr)
+					return seccompProfile
 				}
 			}
 		}
+	}
 
-		if defaultActError {
-			newRule := specs.LinuxSyscall{
-				Names:  []string{syscallNameToAllowStr},
-				Action: specs.ActAllow,
-				Args:   syscallArgsToAllow,
-			}
-			p.OCI.Linux.Seccomp.Syscalls = append(p.OCI.Linux.Seccomp.Syscalls, newRule)
+	if defaultActError {
+		newRule := specs.LinuxSyscall{
+			Names:  []string{syscallNameToAllowStr},
+			Action: specs.ActAllow,
+			Args:   syscallArgs,
 		}
+		seccompProfile.Syscalls = append(seccompProfile.Syscalls, newRule)
+
+		logrus.Errorf("Adding allow rule for syscall: %s", syscallNameToAllowStr)
+	}
+
+	return seccompProfile
+}
+
+// AllowSyscallsWithArgs adds seccomp rules to allow syscalls with the given arguments if necessary
+func (p *OCIProfile) AllowSyscallsWithArgs(syscallsWithArgsToAllow map[types.Syscall][]specs.LinuxSeccompArg) {
+	for syscallNameToAllow, syscallArgsToAllow := range syscallsWithArgsToAllow {
+		p.OCI.Linux.Seccomp = allowSyscallWithArgs(p.OCI.Linux.Seccomp, syscallNameToAllow, syscallArgsToAllow)
 	}
 }
 

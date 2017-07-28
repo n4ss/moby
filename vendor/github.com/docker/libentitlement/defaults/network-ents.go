@@ -164,7 +164,7 @@ func networkAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.Prof
 		return nil, err
 	}
 
-	capsToAdd := []types.Capability{CapNetRaw, CapNetBindService}
+	capsToAdd := []types.Capability{CapNetAdmin, CapNetRaw, CapNetBindService, CapNetBroadcast}
 	ociProfile.AddCaps(capsToAdd...)
 
 	return profile, nil
