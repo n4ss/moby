@@ -7,6 +7,7 @@ import (
 
 	aaprofile "github.com/docker/docker/profiles/apparmor"
 	"github.com/opencontainers/runc/libcontainer/apparmor"
+	"github.com/Sirupsen/logrus"
 )
 
 // Define constants for native driver
@@ -25,6 +26,8 @@ func ensureDefaultAppArmorProfile() error {
 		if loaded {
 			return nil
 		}
+
+		logrus.Errorf("Installing AppArmor profile")
 
 		// Load the profile.
 		if err := aaprofile.InstallDefault(defaultApparmorProfile); err != nil {
