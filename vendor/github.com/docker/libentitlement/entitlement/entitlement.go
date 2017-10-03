@@ -1,7 +1,7 @@
 package entitlement
 
 import (
-	secprofile "github.com/docker/libentitlement/security-profile"
+	secprofile "github.com/docker/libentitlement/secprofile"
 )
 
 // FIXME: we should have a hierarchy in domains
@@ -12,6 +12,8 @@ import (
 
 // FIXME: create error objects
 // FIXME: add a method to return domain as a list and one as a string (currently string only)
+
+// Entitlement defines an interface for an entitlement, including its ID, Domain, and how its enforced in a Profile
 type Entitlement interface {
 	// Entitlement's domain name (ex: network, host.devices,
 	Domain() (string, error)
@@ -21,5 +23,5 @@ type Entitlement interface {
 	Value() (string, error)
 	// Enforce should return an updated value of the profile according to
 	// the entitlement spec (FIXME: write a proper entitlement spec and link it in the proposal)
-	Enforce(*secprofile.Profile) (*secprofile.Profile, error)
+	Enforce(secprofile.Profile) (secprofile.Profile, error)
 }
