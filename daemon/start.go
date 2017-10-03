@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/container"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"encoding/json"
 )
 
 // ContainerStart starts a container.
@@ -184,7 +185,9 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	logrus.Errorf("Spec caps: %v", spec.Process.Capabilities)
+	if err := json.NewEncoder(logrus.StandardLogger().Out).Encode(newSpec); err != nil {
+		return err
+	}
 
 	err = daemon.containerd.Create(context.Background(), container.ID, *newSpec, createOptions)
 	if err != nil {

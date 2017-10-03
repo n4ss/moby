@@ -26,8 +26,11 @@ import (
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
-	"github.com/docker/libentitlement/security-profile"
+	"github.com/docker/libentitlement/secprofile"
 	"github.com/docker/libentitlement"
+	aaprofile "github.com/docker/libentitlement/apparmor"
+	"github.com/docker/docker/pkg/aaparser"
+	"io/ioutil"
 )
 
 // nolint: gosimple
@@ -536,21 +539,42 @@ func inSlice(slice []string, s string) bool {
 
 // Dirty hack due to go typing system even though types are similar
 // because dependencies are identical -> will have to sort out deps
-func generateSecurityProfile(s *specs.Spec) (*security_profile.Profile, error) {
+func generateSecurityProfile(s *specs.Spec, apparmorProfileName string) (*secprofile.OCIProfile, error) {
 	if s == nil {
 		return nil, fmt.Errorf("invalid specs")
 	}
 
-	// TODO: add apparmor profile etc
-	return security_profile.NewProfile(s), nil
+	return secprofile.NewOCIProfile(s, apparmorProfileName), nil
 }
 
-func setSecurityProfile(daemon *Daemon, profile *security_profile.Profile) error {
+func setSecurityProfile(daemon *Daemon, profile secprofile.Profile) error {
 	return daemon.EntitlementManager.SetProfile(profile)
 }
 
-func getSecurityProfile(daemon *Daemon) (*security_profile.Profile, error) {
-	return daemon.EntitlementManager.GetProfile()
+func getSecurityProfile(daemon *Daemon) (secprofile.Profile, error) {
+	 return daemon.EntitlementManager.GetProfile()
+}
+
+func installAppArmorProfile(name string, profile *aaprofile.ProfileData) error {
+	if profile == nil {
+		return nil
+	}
+
+	// Install to a temporary directory.
+	f, err := ioutil.TempFile("", name)
+	if err != nil {
+		return err
+	}
+	profilePath := f.Name()
+
+	defer f.Close()
+	defer os.Remove(profilePath)
+
+	if err := aaprofile.GenerateAppArmorProfile(*profile, f); err != nil {
+		return err
+	}
+
+	return aaparser.LoadProfile(profilePath)
 }
 
 // We only allow to set default entilements for now
@@ -559,11 +583,10 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 		return nil, fmt.Errorf("Cannot set entitlements - invalid specs")
 	}
 
-	if d.EntitlementManager == nil {
+	apparmorProfileName := "docker-entitlement-poc"
 
-		profile, _ := generateSecurityProfile(s)
-		d.EntitlementManager = libentitlement.NewEntitlementsManager(profile)
-	}
+	ociProfile, _ := generateSecurityProfile(s, apparmorProfileName)
+	d.EntitlementManager = libentitlement.NewEntitlementsManager(ociProfile)
 
 	entitlementNames := c.HostConfig.Entitlements
 	for _, entitlementName := range entitlementNames {
@@ -578,8 +601,19 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 		return nil, err
 	}
 
+	ociProfile, ok := profile.(*secprofile.OCIProfile)
+	if !ok {
+		return nil, fmt.Errorf("Error converting to OCI profile")
+	}
+
 	// Dirty hack to convert back to oci spec type
-	spec := specs.Spec(*profile.Oci)
+	spec := specs.Spec(*ociProfile.OCI)
+
+	if ociProfile.AppArmorSetup != nil && apparmor.IsEnabled() {
+		if err = installAppArmorProfile(apparmorProfileName, ociProfile.AppArmorSetup); err != nil {
+			return nil, err
+		}
+	}
 
 	return &spec, nil
 }
