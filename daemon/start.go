@@ -178,7 +178,15 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	err = daemon.containerd.Create(context.Background(), container.ID, spec, createOptions)
+	logrus.Errorf("Setting entitlements: %v", container.HostConfig.Entitlements)
+	newSpec, err := daemon.setEntitlements(container, spec)
+	if err != nil {
+		return err
+	}
+
+	logrus.Errorf("Spec caps: %v", spec.Process.Capabilities)
+
+	err = daemon.containerd.Create(context.Background(), container.ID, *newSpec, createOptions)
 	if err != nil {
 		return translateContainerdStartErr(container.Path, container.SetExitCode, err)
 	}

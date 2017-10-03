@@ -60,6 +60,7 @@ import (
 	nwconfig "github.com/docker/libnetwork/config"
 	"github.com/docker/libtrust"
 	"github.com/pkg/errors"
+	"github.com/docker/libentitlement"
 )
 
 // MainNamespace is the name of the namespace used for users containers
@@ -113,6 +114,8 @@ type Daemon struct {
 	cluster               Cluster
 	genericResources      []swarm.GenericResource
 	metricsPluginListener net.Listener
+
+	EntitlementManager	  *libentitlement.EntitlementsManager
 
 	machineMemory uint64
 
