@@ -421,6 +421,9 @@ func (s *containerRouter) postContainersCreate(ctx context.Context, w http.Respo
 	version := httputils.VersionFromContext(ctx)
 	adjustCPUShares := versions.LessThan(version, "1.19")
 
+	logrus.Errorf("containerRouter.postContainersCreate - Host Config: %v", *hostConfig)
+
+
 	// When using API 1.24 and under, the client is responsible for removing the container
 	if hostConfig != nil && versions.LessThan(version, "1.25") {
 		hostConfig.AutoRemove = false

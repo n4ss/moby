@@ -141,6 +141,7 @@ func Resolve(ctx context.Context, task *api.Task, executor Executor) (Controller
 // change. If ErrTaskDead is returned, calls to Do will no longer result in any
 // action.
 func Do(ctx context.Context, task *api.Task, ctlr Controller) (*api.TaskStatus, error) {
+
 	status := task.Status.Copy()
 
 	// stay in the current state.

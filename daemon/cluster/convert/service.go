@@ -164,6 +164,7 @@ func ServiceSpecToGRPC(s types.ServiceSpec) (swarmapi.ServiceSpec, error) {
 			LogDriver:   driverToGRPC(s.TaskTemplate.LogDriver),
 			Networks:    taskNetworks,
 			ForceUpdate: s.TaskTemplate.ForceUpdate,
+			Entitlements: s.TaskTemplate.Entitlements,
 		},
 		Networks: serviceNetworks,
 	}
@@ -587,6 +588,7 @@ func taskSpecFromGRPC(taskSpec swarmapi.TaskSpec) (types.TaskSpec, error) {
 		LogDriver:     driverFromGRPC(taskSpec.LogDriver),
 		Networks:      taskNetworks,
 		ForceUpdate:   taskSpec.ForceUpdate,
+		Entitlements:  taskSpec.Entitlements,
 	}
 
 	switch taskSpec.GetRuntime().(type) {

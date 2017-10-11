@@ -6,10 +6,13 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/docker/docker/api/types"
+	"github.com/sirupsen/logrus"
 )
 
 // ContainerStart sends a request to the docker daemon to start a container.
 func (cli *Client) ContainerStart(ctx context.Context, containerID string, options types.ContainerStartOptions) error {
+
+	logrus.Errorf("cli.ContainerStart - ")
 	query := url.Values{}
 	if len(options.CheckpointID) != 0 {
 		query.Set("checkpoint", options.CheckpointID)

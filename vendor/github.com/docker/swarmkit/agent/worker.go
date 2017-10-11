@@ -10,6 +10,7 @@ import (
 	"github.com/docker/swarmkit/watch"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+	"runtime/debug"
 )
 
 // Worker implements the core task management logic and persistence. It
@@ -218,6 +219,7 @@ func reconcileTaskState(ctx context.Context, w *worker, assignments []*api.Assig
 		log.G(ctx).WithFields(
 			logrus.Fields{
 				"task.id":           task.ID,
+				"task.entitlements": task.Spec.Entitlements,
 				"task.desiredstate": task.DesiredState}).Debug("assigned")
 		if err := PutTask(tx, task); err != nil {
 			return err
@@ -426,6 +428,10 @@ func (w *worker) Listen(ctx context.Context, reporter StatusReporter) {
 }
 
 func (w *worker) startTask(ctx context.Context, tx *bolt.Tx, task *api.Task) error {
+	logrus.Errorf("worker.startTask - Start Stack - ")
+	debug.PrintStack()
+	logrus.Errorf("worker.startTask - End Stack - ")
+
 	_, err := w.taskManager(ctx, tx, task) // side-effect taskManager creation.
 
 	if err != nil {
@@ -458,6 +464,10 @@ func (w *worker) taskManager(ctx context.Context, tx *bolt.Tx, task *api.Task) (
 }
 
 func (w *worker) newTaskManager(ctx context.Context, tx *bolt.Tx, task *api.Task) (*taskManager, error) {
+	logrus.Errorf("worker.newTaskManager - Start Stack - ")
+	debug.PrintStack()
+	logrus.Errorf("worker.newTaskManager - End Stack - ")
+
 	ctx = log.WithLogger(ctx, log.G(ctx).WithFields(logrus.Fields{
 		"task.id":    task.ID,
 		"service.id": task.ServiceID,

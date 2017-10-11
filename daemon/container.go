@@ -22,6 +22,8 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/opencontainers/selinux/go-selinux/label"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"runtime/debug"
 )
 
 // GetContainer looks for a container using the provided information, which could be
@@ -123,7 +125,13 @@ func (daemon *Daemon) Register(c *container.Container) error {
 	return c.CheckpointTo(daemon.containersReplica)
 }
 
-func (daemon *Daemon) newContainer(name string, operatingSystem string, config *containertypes.Config, hostConfig *containertypes.HostConfig, imgID image.ID, managed bool) (*container.Container, error) {
+func (daemon *Daemon) newContainer(name string, platform string, config *containertypes.Config, hostConfig *containertypes.HostConfig, imgID image.ID, managed bool) (*container.Container, error) {
+	logrus.Errorf("newContainer - Host Config: %v", *hostConfig)
+
+	logrus.Errorf("daemon.newContainer - Start Stack - ")
+	debug.PrintStack()
+	logrus.Errorf("daemon.newContainer - End Stack - ")
+
 	var (
 		id             string
 		err            error
@@ -208,6 +216,8 @@ func (daemon *Daemon) setSecurityOptions(container *container.Container, hostCon
 }
 
 func (daemon *Daemon) setHostConfig(container *container.Container, hostConfig *containertypes.HostConfig) error {
+	logrus.Errorf("Daemon.setHostConfig - Host Config: %v", *hostConfig)
+
 	// Do not lock while creating volumes since this could be calling out to external plugins
 	// Don't want to block other actions, like `docker ps` because we're waiting on an external plugin
 	if err := daemon.registerMountPoints(container, hostConfig); err != nil {

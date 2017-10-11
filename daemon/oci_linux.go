@@ -588,6 +588,8 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 	ociProfile, _ := generateSecurityProfile(s, apparmorProfileName)
 	d.EntitlementManager = libentitlement.NewEntitlementsManager(ociProfile)
 
+	logrus.Errorf("daemon.setEntitlements - config - %v", c.Config)
+
 	entitlementNames := c.HostConfig.Entitlements
 	for _, entitlementName := range entitlementNames {
 		// Only default entitlements supported for now

@@ -15,6 +15,7 @@ import (
 
 // ContainerStart starts a container.
 func (daemon *Daemon) ContainerStart(name string, hostConfig *containertypes.HostConfig, checkpoint string, checkpointDir string) error {
+
 	if checkpoint != "" && !daemon.HasExperimental() {
 		return validationError{errors.New("checkpoint is only supported in experimental mode")}
 	}
@@ -103,6 +104,7 @@ func (daemon *Daemon) ContainerStart(name string, hostConfig *containertypes.Hos
 // between containers. The container is left waiting for a signal to
 // begin running.
 func (daemon *Daemon) containerStart(container *container.Container, checkpoint string, checkpointDir string, resetRestartManager bool) (err error) {
+
 	start := time.Now()
 	container.Lock()
 	defer container.Unlock()
