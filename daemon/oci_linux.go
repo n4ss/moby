@@ -590,7 +590,7 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 
 	logrus.Errorf("daemon.setEntitlements - config - %v", c.Config)
 
-	entitlementNames := c.HostConfig.Entitlements
+	entitlementNames := c.Config.Entitlements
 	for _, entitlementName := range entitlementNames {
 		// Only default entitlements supported for now
 		logrus.Errorf("Setting entitlement: %v", entitlementName)
