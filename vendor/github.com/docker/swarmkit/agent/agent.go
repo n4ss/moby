@@ -12,8 +12,6 @@ import (
 	"github.com/docker/swarmkit/api"
 	"github.com/docker/swarmkit/log"
 	"golang.org/x/net/context"
-	"github.com/sirupsen/logrus"
-	"runtime/debug"
 )
 
 const (
@@ -78,10 +76,6 @@ func New(config *Config) (*Agent, error) {
 //
 // Start returns an error if the agent has already started.
 func (a *Agent) Start(ctx context.Context) error {
-	logrus.Errorf("Agent.Start - Start Stack - ")
-	debug.PrintStack()
-	logrus.Errorf("Agent.Start - End Stack - ")
-
 	err := errAgentStarted
 
 	a.startOnce.Do(func() {

@@ -10,7 +10,6 @@ import (
 	"github.com/docker/swarmkit/log"
 	"golang.org/x/net/context"
 	"github.com/sirupsen/logrus"
-	"runtime/debug"
 )
 
 // taskManager manages all aspects of task execution and reporting for an agent
@@ -29,11 +28,6 @@ type taskManager struct {
 }
 
 func newTaskManager(ctx context.Context, task *api.Task, ctlr exec.Controller, reporter StatusReporter) *taskManager {
-	logrus.Errorf("newTaskManager- Start Stack - ")
-	debug.PrintStack()
-	logrus.Errorf("newTaskManager - End Stack - ")
-
-
 	t := &taskManager{
 		task:     task.Copy(),
 		ctlr:     ctlr,
@@ -42,7 +36,6 @@ func newTaskManager(ctx context.Context, task *api.Task, ctlr exec.Controller, r
 		shutdown: make(chan struct{}),
 		closed:   make(chan struct{}),
 	}
-	logrus.Errorf("Entitlements: %v", task.Spec)
 	go t.run(ctx)
 	return t
 }
@@ -83,10 +76,6 @@ func (tm *taskManager) Logs(ctx context.Context, options api.LogSubscriptionOpti
 }
 
 func (tm *taskManager) run(ctx context.Context) {
-	logrus.Errorf("runctx- Start Stack - ")
-	debug.PrintStack()
-	logrus.Errorf("runctx - End Stack - ")
-
 	ctx, cancelAll := context.WithCancel(ctx)
 	defer cancelAll() // cancel all child operations on exit.
 

@@ -50,7 +50,7 @@ var (
 			Destination: "/dev",
 			Type:        "tmpfs",
 			Source:      "tmpfs",
-			Options:     []string{"nosuid", "strictatime", "mode=755"},
+			Options:     []string{"nosuid", "strictatime", "mode=755", "size=65536k"},
 		},
 		{
 			Destination: "/dev/pts",
@@ -75,6 +75,12 @@ var (
 			Type:        "mqueue",
 			Source:      "mqueue",
 			Options:     []string{"nosuid", "noexec", "nodev"},
+		},
+		{
+			Destination: "/dev/shm",
+			Type:        "tmpfs",
+			Source:      "shm",
+			Options:     []string{"nosuid", "noexec", "nodev", "mode=1777"},
 		},
 	}
 )
@@ -156,7 +162,7 @@ func hostDevicesAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.
 		return nil, err
 	}
 
-	ociProfile.OCI.Mounts = removeReadOnlyFlagMounts(allowedMounts)
+	ociProfile.OCI.Mounts = removeReadOnlyFlagMounts(ociProfile.OCI.Mounts)
 
 	ociProfile.OCI.Linux.MaskedPaths = []string{}
 
@@ -164,6 +170,9 @@ func hostDevicesAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.
 		CapSysAdmin,
 	}
 	ociProfile.AddCaps(capsToAdd...)
+
+	ociProfile.OCI.Process.ApparmorProfile = "unconfined"
+	ociProfile.AppArmorSetup = nil
 
 	return ociProfile, nil
 }

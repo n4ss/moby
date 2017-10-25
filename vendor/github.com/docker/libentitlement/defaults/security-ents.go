@@ -130,7 +130,20 @@ func securityAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.Pro
 
 	syscallsToAllow := []types.Syscall{
 		SysPtrace, SysArchPrctl, SysPersonality, SysSetuid, SysSetgid, SysPrctl, SysMadvise, SysMount, SysInitModule,
-		SysFinitModule, SysSetns, SysClone, SysUnshare,
+		SysFinitModule, SysSetns, SysClone, SysUnshare, SysKeyctl, SysPivotRoot, SysUmount2, SysFork, SysChroot,
+
+		SysSethostname,
+		SysSetdomainname,
+		SysIopl,
+		SysIoperm,
+		SysCreateModule,
+		SysInitModule,
+		SysDeleteModule,
+		SysGetKernelSyms,
+		SysQueryModule,
+		SysQuotactl,
+		SysGetpmsg,
+		SysPutpmsg,
 	}
 	ociProfile.AllowSyscalls(syscallsToAllow...)
 
