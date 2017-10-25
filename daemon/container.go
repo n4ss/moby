@@ -23,7 +23,6 @@ import (
 	"github.com/opencontainers/selinux/go-selinux/label"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"runtime/debug"
 )
 
 // GetContainer looks for a container using the provided information, which could be
@@ -126,12 +125,6 @@ func (daemon *Daemon) Register(c *container.Container) error {
 }
 
 func (daemon *Daemon) newContainer(name string, platform string, config *containertypes.Config, hostConfig *containertypes.HostConfig, imgID image.ID, managed bool) (*container.Container, error) {
-	logrus.Errorf("newContainer - Host Config: %v", *hostConfig)
-
-	logrus.Errorf("daemon.newContainer - Start Stack - ")
-	debug.PrintStack()
-	logrus.Errorf("daemon.newContainer - End Stack - ")
-
 	var (
 		id             string
 		err            error

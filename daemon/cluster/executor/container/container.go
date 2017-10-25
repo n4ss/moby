@@ -221,6 +221,8 @@ func (c *containerConfig) config() *enginecontainer.Config {
 		config.Cmd = c.spec().Args
 	}
 
+	// FIXME(nass): set defaults entitlements if none specified
+
 	return config
 }
 
