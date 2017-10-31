@@ -21,7 +21,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -644,8 +643,6 @@ func (s *Server) CreateService(ctx context.Context, request *api.CreateServiceRe
 	if err := validateServiceSpec(request.Spec); err != nil {
 		return nil, err
 	}
-
-	logrus.Errorf("server.CreateService - Entitlements: %v", request.Spec.Task.Entitlements)
 
 	if err := s.validateNetworks(request.Spec.Networks); err != nil {
 		return nil, err

@@ -218,7 +218,6 @@ func reconcileTaskState(ctx context.Context, w *worker, assignments []*api.Assig
 		log.G(ctx).WithFields(
 			logrus.Fields{
 				"task.id":           task.ID,
-				"task.entitlements": task.Spec.Entitlements,
 				"task.desiredstate": task.DesiredState}).Debug("assigned")
 		if err := PutTask(tx, task); err != nil {
 			return err

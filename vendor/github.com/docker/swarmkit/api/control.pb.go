@@ -27,10 +27,7 @@ import strings "strings"
 import reflect "reflect"
 import github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
 
-import (
-	io "io"
-	"github.com/sirupsen/logrus"
-)
+import io "io"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -2562,8 +2559,6 @@ func (c *controlClient) ListServices(ctx context.Context, in *ListServicesReques
 }
 
 func (c *controlClient) CreateService(ctx context.Context, in *CreateServiceRequest, opts ...grpc.CallOption) (*CreateServiceResponse, error) {
-	logrus.Errorf("\n\n\n\n\n\ncontrolClient.CreateService - Entitlements: %v\n\n\n\n\n", in.Spec.Task.Entitlements)
-
 	out := new(CreateServiceResponse)
 	err := grpc.Invoke(ctx, "/docker.swarmkit.v1.Control/CreateService", in, out, c.cc, opts...)
 	if err != nil {

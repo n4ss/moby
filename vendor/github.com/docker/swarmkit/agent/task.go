@@ -9,7 +9,6 @@ import (
 	"github.com/docker/swarmkit/api/equality"
 	"github.com/docker/swarmkit/log"
 	"golang.org/x/net/context"
-	"github.com/sirupsen/logrus"
 )
 
 // taskManager manages all aspects of task execution and reporting for an agent
@@ -121,7 +120,6 @@ func (tm *taskManager) run(ctx context.Context) {
 			updatedLocal := updated // capture state of update for goroutine
 			updated = false
 			go runctx(ctx, tm.closed, errs, func(ctx context.Context) error {
-				logrus.Errorf("\n\n taskManager.run - task: %v\n\n", tm.task.Spec.Entitlements)
 				defer opcancel()
 
 				if updatedLocal {
@@ -150,7 +148,6 @@ func (tm *taskManager) run(ctx context.Context) {
 
 				return err
 			})
-
 		case err := <-errs:
 			// This branch is always executed when an operations completes. The
 			// goal is to decide whether or not we re-dispatch the operation.
