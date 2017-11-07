@@ -60,7 +60,7 @@ import (
 	nwconfig "github.com/docker/libnetwork/config"
 	"github.com/docker/libtrust"
 	"github.com/pkg/errors"
-	"github.com/docker/libentitlement"
+	"github.com/moby/libentitlement"
 )
 
 // MainNamespace is the name of the namespace used for users containers

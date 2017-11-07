@@ -26,9 +26,9 @@ import (
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
-	"github.com/docker/libentitlement/secprofile"
-	"github.com/docker/libentitlement"
-	aaprofile "github.com/docker/libentitlement/apparmor"
+	"github.com/moby/libentitlement/secprofile"
+	"github.com/moby/libentitlement"
+	aaprofile "github.com/moby/libentitlement/apparmor"
 	"github.com/docker/docker/pkg/aaparser"
 	"io/ioutil"
 )
