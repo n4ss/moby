@@ -190,7 +190,7 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		return err
 	}
 
-	err = daemon.containerd.Create(context.Background(), container.ID, *newSpec, createOptions)
+	err = daemon.containerd.Create(context.Background(), container.ID, newSpec, createOptions)
 	if err != nil {
 		return translateContainerdStartErr(container.Path, container.SetExitCode, err)
 	}
