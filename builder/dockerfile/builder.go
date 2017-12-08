@@ -76,6 +76,8 @@ func NewBuildManager(b builder.Backend, sg SessionGetter, fsCache *fscache.FSCac
 
 // Build starts a new build from a BuildConfig
 func (bm *BuildManager) Build(ctx context.Context, config backend.BuildConfig) (*builder.Result, error) {
+	logrus.Errorf("BuildManager.Build - entitlements: %v", config.Options.Entitlements)
+
 	buildsTriggered.Inc()
 	if config.Options.Dockerfile == "" {
 		config.Options.Dockerfile = builder.DefaultDockerfileName
@@ -216,6 +218,8 @@ func newBuilder(clientCtx context.Context, options builderOptions, os string) *B
 // Build runs the Dockerfile builder by parsing the Dockerfile and executing
 // the instructions from the file.
 func (b *Builder) build(source builder.Source, dockerfile *parser.Result) (*builder.Result, error) {
+	logrus.Errorf("Builder.build START - entitlements: %v", b.options.Entitlements)
+
 	defer b.imageSources.Unmount()
 
 	addNodesForLabelOption(dockerfile.AST, b.options.Labels)
@@ -245,6 +249,9 @@ func (b *Builder) build(source builder.Source, dockerfile *parser.Result) (*buil
 		buildsFailed.WithValues(metricsDockerfileEmptyError).Inc()
 		return nil, errors.New("No image was generated. Is your Dockerfile empty?")
 	}
+
+	logrus.Errorf("Builder.build END - entitlements: %v", dispatchState.baseImage.RunConfig().Entitlements)
+
 	return &builder.Result{ImageID: dispatchState.imageID, FromImage: dispatchState.baseImage}, nil
 }
 
@@ -275,6 +282,8 @@ func printCommand(out io.Writer, currentCommandIndex int, totalCommands int, cmd
 }
 
 func (b *Builder) dispatchDockerfileWithCancellation(parseResult []instructions.Stage, metaArgs []instructions.ArgCommand, escapeToken rune, source builder.Source) (*dispatchState, error) {
+	logrus.Errorf("dispatchDockerfileWithCancellation - entitlements: %v", b.options.Entitlements)
+
 	dispatchRequest := dispatchRequest{}
 	buildArgs := newBuildArgs(b.options.BuildArgs)
 	totalCommands := len(metaArgs) + len(parseResult)
@@ -335,6 +344,7 @@ func (b *Builder) dispatchDockerfileWithCancellation(parseResult []instructions.
 		}
 	}
 	buildArgs.WarnOnUnusedBuildArgs(b.Stdout)
+	logrus.Errorf("Builder.dispatchDockerfileWithCancellation END - image ID: %v - entitlements: %v", dispatchRequest.state.imageID, dispatchRequest.state.baseImage.RunConfig().Entitlements)
 	return dispatchRequest.state, nil
 }
 

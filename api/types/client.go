@@ -181,6 +181,7 @@ type ImageBuildOptions struct {
 	Target      string
 	SessionID   string
 	Platform    string
+	Entitlements []string
 }
 
 // ImageBuildResponse holds information

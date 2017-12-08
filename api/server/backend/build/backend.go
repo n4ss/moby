@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"github.com/sirupsen/logrus"
 )
 
 // ImageComponent provides an interface for working with images
@@ -49,6 +50,8 @@ func (b *Backend) Build(ctx context.Context, config backend.BuildConfig) (string
 	if err != nil {
 		return "", err
 	}
+
+	logrus.Errorf("Backend.Build - entitlements: %v", build.FromImage.RunConfig().Entitlements)
 
 	var imageID = build.ImageID
 	if options.Squash {

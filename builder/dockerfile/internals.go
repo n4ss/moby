@@ -90,6 +90,9 @@ func (b *Builder) commit(dispatchState *dispatchState, comment string) error {
 	if err != nil || hit {
 		return err
 	}
+
+	runConfigWithCommentCmd.Entitlements = b.options.Entitlements
+
 	id, err := b.create(runConfigWithCommentCmd)
 	if err != nil {
 		return err
@@ -438,6 +441,7 @@ func copyRunConfig(runConfig *container.Config, modifiers ...runConfigModifier) 
 	copy.Entrypoint = copyStringSlice(runConfig.Entrypoint)
 	copy.OnBuild = copyStringSlice(runConfig.OnBuild)
 	copy.Shell = copyStringSlice(runConfig.Shell)
+	copy.Entitlements = copyStringSlice(runConfig.Entitlements)
 
 	if copy.Volumes != nil {
 		copy.Volumes = make(map[string]struct{}, len(runConfig.Volumes))
@@ -509,6 +513,9 @@ func (b *Builder) probeAndCreate(dispatchState *dispatchState, runConfig *contai
 func (b *Builder) create(runConfig *container.Config) (string, error) {
 	hostConfig := hostConfigFromOptions(b.options)
 	optionsPlatform := system.ParsePlatform(b.options.Platform)
+
+	runConfig.Entitlements = b.options.Entitlements
+
 	container, err := b.containerManager.Create(runConfig, hostConfig, optionsPlatform.OS)
 	if err != nil {
 		return "", err

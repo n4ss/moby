@@ -30,6 +30,7 @@ import (
 	"github.com/docker/docker/pkg/system"
 	"github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func dispatch(d dispatchRequest, cmd instructions.Command) (err error) {
@@ -112,10 +113,10 @@ type dispatchState struct {
 	buildArgs  *buildArgs
 }
 
-func newDispatchState(baseArgs *buildArgs) *dispatchState {
+func newDispatchState(baseArgs *buildArgs, imageEntitlements []string) *dispatchState {
 	args := baseArgs.Clone()
 	args.ResetAllowed()
-	return &dispatchState{runConfig: &container.Config{}, buildArgs: args}
+	return &dispatchState{runConfig: &container.Config{Entitlements: imageEntitlements,}, buildArgs: args}
 }
 
 type stagesBuildResults struct {
@@ -168,6 +169,7 @@ func (r *stagesBuildResults) checkStageNameAvailable(name string) error {
 }
 
 func (r *stagesBuildResults) commitStage(name string, config *container.Config) error {
+	logrus.Errorf("stagesBuildResults.commitStage - entitlements: %v", config.Entitlements)
 	if name != "" {
 		if _, ok := r.getByName(name); ok {
 			return errors.Errorf("%s stage name already used", name)
@@ -191,8 +193,9 @@ type dispatchRequest struct {
 }
 
 func newDispatchRequest(builder *Builder, escapeToken rune, source builder.Source, buildArgs *buildArgs, stages *stagesBuildResults) dispatchRequest {
+	logrus.Errorf("newDispatchRequest - entitlements: %v", builder.options.Entitlements)
 	return dispatchRequest{
-		state:   newDispatchState(buildArgs),
+		state:   newDispatchState(buildArgs, builder.options.Entitlements),
 		shlex:   NewShellLex(escapeToken),
 		builder: builder,
 		source:  source,
@@ -210,19 +213,38 @@ func (s *dispatchState) hasFromImage() bool {
 }
 
 func (s *dispatchState) beginStage(stageName string, image builder.Image) {
+	logrus.Errorf("beginStage START - entitlements: %v", s.runConfig.Entitlements)
+	// save entitlements
+	entitlements := s.runConfig.Entitlements
+
 	s.stageName = stageName
 	s.imageID = image.ImageID()
 
 	if image.RunConfig() != nil {
 		// copy avoids referencing the same instance when 2 stages have the same base
 		s.runConfig = copyRunConfig(image.RunConfig())
+
 	} else {
 		s.runConfig = &container.Config{}
 	}
+
 	s.baseImage = image
 	s.setDefaultPath()
 	s.runConfig.OpenStdin = false
 	s.runConfig.StdinOnce = false
+
+	// FIXME(nass): doesn't seem like the best place, also need to provide entitlement inheritance instead of base image
+	// entitlements overriding
+
+	// Restore entitlements
+	if len(entitlements) > 0 {
+		s.runConfig.Entitlements = entitlements
+
+		config := s.baseImage.RunConfig()
+		config.Entitlements = entitlements
+	}
+
+	logrus.Errorf("beginStage END - entitlements runConfig: %v, entitlements base image: %v", s.runConfig.Entitlements, s.baseImage.RunConfig().Entitlements)
 }
 
 // Add the default PATH to runConfig.ENV if one exists for the operating system and there

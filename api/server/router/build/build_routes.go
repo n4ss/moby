@@ -66,6 +66,7 @@ func newImageBuildOptions(ctx context.Context, r *http.Request) (*types.ImageBui
 	options.Tags = r.Form["t"]
 	options.ExtraHosts = r.Form["extrahosts"]
 	options.SecurityOpt = r.Form["securityopt"]
+	options.Entitlements = r.Form["entitlements"]
 	options.Squash = httputils.BoolValue(r, "squash")
 	options.Target = r.FormValue("target")
 	options.RemoteContext = r.FormValue("remote")
@@ -178,6 +179,8 @@ func (e validationError) Error() string {
 func (e validationError) InvalidParameter() {}
 
 func (br *buildRouter) postBuild(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	logrus.Errorf("buildRouter.postBuild - entitlements: %v", r.FormValue("entitlements"))
+
 	var (
 		notVerboseBuffer = bytes.NewBuffer(nil)
 		version          = httputils.VersionFromContext(ctx)
