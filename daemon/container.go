@@ -159,6 +159,8 @@ func (daemon *Daemon) newContainer(name string, operatingSystem string, config *
 	base.Name = name
 	base.Driver = daemon.GraphDriverName(operatingSystem)
 	base.OS = operatingSystem
+
+	logrus.Errorf("daemon.newContainer - entitlements: %v", config.Entitlements)
 	return base, err
 }
 
@@ -209,8 +211,6 @@ func (daemon *Daemon) setSecurityOptions(container *container.Container, hostCon
 }
 
 func (daemon *Daemon) setHostConfig(container *container.Container, hostConfig *containertypes.HostConfig) error {
-	logrus.Errorf("Daemon.setHostConfig - Host Config: %v", *hostConfig)
-
 	// Do not lock while creating volumes since this could be calling out to external plugins
 	// Don't want to block other actions, like `docker ps` because we're waiting on an external plugin
 	if err := daemon.registerMountPoints(container, hostConfig); err != nil {

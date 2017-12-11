@@ -343,8 +343,15 @@ func (b *Builder) dispatchDockerfileWithCancellation(parseResult []instructions.
 			return nil, err
 		}
 	}
+
 	buildArgs.WarnOnUnusedBuildArgs(b.Stdout)
 	logrus.Errorf("Builder.dispatchDockerfileWithCancellation END - image ID: %v - entitlements: %v", dispatchRequest.state.imageID, dispatchRequest.state.baseImage.RunConfig().Entitlements)
+	if len(b.options.Entitlements) > 0 {
+		if err := b.commit(dispatchRequest.state, fmt.Sprintf("ENTITLEMENTS %v", b.options.Entitlements)); err != nil {
+			return nil, err
+		}
+	}
+
 	return dispatchRequest.state, nil
 }
 

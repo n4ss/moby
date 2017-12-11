@@ -71,11 +71,15 @@ func (daemon *Daemon) containerCreate(params types.ContainerCreateConfig, manage
 		return containertypes.ContainerCreateCreatedBody{Warnings: warnings}, validationError{err}
 	}
 
+	// FIXME(nass): call entitlements validator for defaults
+
 	container, err := daemon.create(params, managed)
 	if err != nil {
 		return containertypes.ContainerCreateCreatedBody{Warnings: warnings}, err
 	}
 	containerActions.WithValues("create").UpdateSince(start)
+
+	logrus.Errorf("Daemon.containerCreate - entitlements: %v", container.Config.Entitlements)
 
 	return containertypes.ContainerCreateCreatedBody{ID: container.ID, Warnings: warnings}, nil
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	lcUser "github.com/opencontainers/runc/libcontainer/user"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // Archiver defines an interface for copying files from one destination to
@@ -91,7 +92,7 @@ func (b *Builder) commit(dispatchState *dispatchState, comment string) error {
 		return err
 	}
 
-	runConfigWithCommentCmd.Entitlements = b.options.Entitlements
+	logrus.Errorf("Builder.commit - entitlements: %s", runConfigWithCommentCmd.Entitlements)
 
 	id, err := b.create(runConfigWithCommentCmd)
 	if err != nil {
