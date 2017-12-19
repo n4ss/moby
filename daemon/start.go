@@ -165,6 +165,7 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 		container.ResetRestartManager(true)
 	}
 
+	// FIXME(nass) add the precedence resolve handling between the entitlement & provided apparmor profile
 	if daemon.saveApparmorConfig(container); err != nil {
 		return err
 	}

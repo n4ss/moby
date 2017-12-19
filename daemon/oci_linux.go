@@ -612,6 +612,8 @@ func (d *Daemon) setEntitlements(c *container.Container, s *specs.Spec) (*specs.
 	// Dirty hack to convert back to oci spec type
 	spec := specs.Spec(*ociProfile.OCI)
 
+	logrus.Errorf("AppArmor - name: %s - profile: %s", ociProfile.OCI.Process.ApparmorProfile)
+
 	if !apparmor.IsEnabled() {
 		ociProfile.OCI.Process.ApparmorProfile = ""
 	} else {
