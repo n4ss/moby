@@ -33,7 +33,7 @@ var (
 /* Implements "security.confined" entitlement:
  * - Blocked caps: CAP_SYS_ADMIN, CAP_SYS_PTRACE, CAP_SETUID, CAP_SETGID, CAP_SETPCAP, CAP_SETFCAP, CAP_MAC_ADMIN,
  *					CAP_MAC_OVERRIDE, CAP_DAC_OVERRIDE, CAP_DAC_READ_SEARCH, CAP_FSETID, CAP_SYS_MODULE, CAP_SYSLOG,
- * 					CAP_SYS_RAWIO, CAP_LINUX_IMMUTABLE
+ * 					CAP_SYS_RAWIO, CAP_LINUX_IMMUTABLE, CAP_SYS_RESOURCE
  * - Blocked syscalls: ptrace, arch_prctl, personality, madvise, prctl with PR_CAPBSET_DROP and PR_CAPBSET_READ
  */
 func securityConfinedEntitlementEnforce(profile secprofile.Profile) (secprofile.Profile, error) {
@@ -44,7 +44,8 @@ func securityConfinedEntitlementEnforce(profile secprofile.Profile) (secprofile.
 
 	capsToRemove := []types.Capability{
 		osdefs.CapMacAdmin, osdefs.CapMacOverride, osdefs.CapDacOverride, osdefs.CapDacReadSearch, osdefs.CapSetpcap, osdefs.CapSetfcap, osdefs.CapSetuid, osdefs.CapSetgid,
-		osdefs.CapSysPtrace, osdefs.CapFsetid, osdefs.CapSysModule, osdefs.CapSyslog, osdefs.CapSysRawio, osdefs.CapSysAdmin, osdefs.CapLinuxImmutable, osdefs.CapSysResource,
+		osdefs.CapSysPtrace, osdefs.CapFsetid, osdefs.CapSysModule, osdefs.CapSyslog, osdefs.CapSysRawio, osdefs.CapSysAdmin, osdefs.CapLinuxImmutable,
+		osdefs.CapSysResource,
 	}
 	ociProfile.RemoveCaps(capsToRemove...)
 
@@ -92,7 +93,6 @@ func securityViewEntitlementEnforce(profile secprofile.Profile) (secprofile.Prof
 		osdefs.CapSetuid, osdefs.CapSetgid, osdefs.CapSetpcap, osdefs.CapSetfcap,
 		osdefs.CapMacAdmin, osdefs.CapMacOverride, osdefs.CapAuditRead,
 		osdefs.CapDacOverride, osdefs.CapFsetid, osdefs.CapSysModule, osdefs.CapSyslog, osdefs.CapSysRawio, osdefs.CapLinuxImmutable,
-		osdefs.CapSysResource,
 	}
 	ociProfile.RemoveCaps(capsToRemove...)
 
@@ -128,7 +128,8 @@ func securityViewEntitlementEnforce(profile secprofile.Profile) (secprofile.Prof
  * 						CAP_SETUID, CAP_SETGID, CAP_SYS_PTRACE, CAP_FSETID, CAP_SYS_MODULE, CAP_SYSLOG, CAP_SYS_RAWIO,
  *						CAP_SYS_ADMIN, CAP_LINUX_IMMUTABLE, CAP_SYS_BOOT, CAP_SYS_NICE, CAP_SYS_PACCT,
  *						CAP_SYS_TTY_CONFIG, CAP_SYS_TIME, CAP_WAKE_ALARM, CAP_AUDIT_READ, CAP_AUDIT_WRITE,
- *						CAP_AUDIT_CONTROL
+ *						CAP_AUDIT_CONTROL,
+ * 						CAP_SYS_RESOURCE
  * - Allowed syscalls: ptrace, arch_prctl, personality, setuid, setgid, prctl, madvise, mount, init_module,
  *						finit_module, setns, clone, unshare
  * - No read-only paths
@@ -163,7 +164,6 @@ func securityAdminEntitlementEnforce(profile secprofile.Profile) (secprofile.Pro
 		osdefs.SysQuotactl,
 		osdefs.SysGetpmsg,
 		osdefs.SysPutpmsg,
-
 	}
 	ociProfile.AllowSyscalls(syscallsToAllow...)
 
